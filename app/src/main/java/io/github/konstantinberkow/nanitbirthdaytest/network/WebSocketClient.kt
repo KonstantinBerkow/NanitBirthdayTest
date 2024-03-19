@@ -6,7 +6,6 @@ import okio.ByteString
 interface WebSocketClient {
 
     suspend fun subscribe(
-        webSocketUrl: String,
         input: Flow<Command>,
         textHandler: suspend (String) -> Unit,
         bytesHandler: suspend (ByteString) -> Unit,

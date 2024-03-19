@@ -8,7 +8,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -25,19 +25,18 @@ class OkHttpWebSocketClient(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun subscribe(
-        webSocketUrl: String,
         input: Flow<WebSocketClient.Command>,
         textHandler: suspend (String) -> Unit,
         bytesHandler: suspend (ByteString) -> Unit,
     ) {
         val webSocketEvents = input
-            .filter { it is WebSocketClient.Command.Connect }
-            .flatMapLatest { _ ->
+            .filterIsInstance<WebSocketClient.Command.Connect>()
+            .flatMapLatest { connect ->
                 logDebug { "callbackFlow start" }
-                callbackFlow<WebSocketClient.Event> {
+                callbackFlow {
                     val listener = ProductScopeWebSocketListener(this)
                     val request = Request.Builder()
-                        .url(webSocketUrl)
+                        .url(connect.webSocketUrl)
                         .build()
                     val webSocket = okHttpClientProvider().newWebSocket(request, listener)
                     logDebug { "connection initiated via $webSocket" }
