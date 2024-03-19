@@ -7,7 +7,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import io.github.konstantinberkow.nanitbirthdaytest.NanitClientApp
+import io.github.konstantinberkow.nanitbirthdaytest.network.BirthdayMessage
 import io.github.konstantinberkow.nanitbirthdaytest.network.WebSocketClient
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +25,8 @@ private const val TAG = "MainViewModel"
 
 class MainViewModel(
     private val webSocketClientFactory: () -> WebSocketClient,
-    private val transformAddressFromInput: (String) -> String
+    private val transformAddressFromInput: (String) -> String,
+    private val gson: Gson
 ) : ViewModel() {
 
     // only existing action - connect
@@ -52,13 +56,24 @@ class MainViewModel(
                                 is WebSocketClient.Event.State.Closing ->
                                     State.closed(address)
 
-                                is WebSocketClient.Event.State.Connected ->
+                                is WebSocketClient.Event.State.Connected -> {
+                                    socketState.webSocket.send("HappyBirthday")
                                     State.connected(address)
+                                }
 
                                 is WebSocketClient.Event.State.Failed ->
                                     State.failed(address, socketState.throwable)
                             }
                             send(newState)
+                        },
+                        textHandler = { newText ->
+                            Log.d(TAG, "Handle text: $newText")
+                            try {
+                                val message = gson.fromJson(newText, BirthdayMessage::class.java)
+                                send(State.info(address, message))
+                            } catch (je: JsonSyntaxException) {
+                                Log.e(TAG, "Failed to parse", je)
+                            }
                         },
                         coroutineScope = viewModelScope
                     )
@@ -81,7 +96,8 @@ class MainViewModel(
         val rawAddress: String = "",
         val connecting: Boolean = false,
         val connected: Boolean = false,
-        val failure: Throwable? = null
+        val failure: Throwable? = null,
+        val info: BirthdayMessage? = null
     ) {
 
         companion object {
@@ -90,29 +106,31 @@ class MainViewModel(
                 State(
                     rawAddress = address,
                     connecting = true,
-                    connected = false
                 )
 
             fun connected(address: String) =
                 State(
                     rawAddress = address,
                     connecting = false,
-                    connected = true
+                    connected = true,
                 )
 
             fun closed(address: String) =
                 State(
                     rawAddress = address,
-                    connecting = false,
-                    connected = false
                 )
 
             fun failed(address: String, cause: Throwable) =
                 State(
                     rawAddress = address,
-                    connecting = false,
-                    connected = false,
                     failure = cause
+                )
+
+            fun info(address: String, birthdayMessage: BirthdayMessage) =
+                State(
+                    rawAddress = address,
+                    connected = true,
+                    info = birthdayMessage
                 )
         }
     }
@@ -127,7 +145,11 @@ class MainViewModel(
             val dependencies = app.dependencies
             val socketFactory = dependencies.webSocketOkHttpClientFactory
             val transformAddressFromInput = dependencies.transformAddressFromInput
-            return MainViewModel(socketFactory, transformAddressFromInput) as T
+            return MainViewModel(
+                webSocketClientFactory = socketFactory,
+                transformAddressFromInput = transformAddressFromInput,
+                gson = dependencies.gson
+            ) as T
         }
     }
 }
