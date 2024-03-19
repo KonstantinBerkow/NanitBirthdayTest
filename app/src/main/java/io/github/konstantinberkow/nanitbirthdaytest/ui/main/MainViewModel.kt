@@ -52,8 +52,10 @@ class MainViewModel(
                                 is WebSocketClient.Event.State.Closing ->
                                     State.closed(address)
 
-                                is WebSocketClient.Event.State.Connected ->
+                                is WebSocketClient.Event.State.Connected -> {
+                                    socketState.webSocket.send("HappyBirthday")
                                     State.connected(address)
+                                }
 
                                 is WebSocketClient.Event.State.Failed ->
                                     State.failed(address, socketState.throwable)
