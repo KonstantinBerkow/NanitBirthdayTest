@@ -2,4 +2,13 @@
     <string name="app_name">NanitBirthdayTest</string>
     <string name="add_ws_address_hint">Server address</string>
     <string name="connect_title">Connect</string>
+    <string name="name_text">Today %s is</string>
+    <plurals name="years_old">
+        <item quantity="one">year old!</item>
+        <item quantity="other">years old!</item>
+    </plurals>
+    <plurals name="months_old">
+        <item quantity="one">month old!</item>
+        <item quantity="other">months old!</item>
+    </plurals>
 </resources>
