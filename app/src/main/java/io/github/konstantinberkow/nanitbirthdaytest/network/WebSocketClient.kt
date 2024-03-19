@@ -5,7 +5,10 @@ import okio.ByteString
 
 interface WebSocketClient {
 
-    suspend fun subscribe(input: Flow<Command>)
+    suspend fun subscribe(
+        webSocketUrl: String,
+        input: Flow<Command>
+    )
 
     sealed interface Command {
 
