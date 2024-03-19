@@ -8,8 +8,10 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.mapNotNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -54,15 +56,58 @@ class OkHttpWebSocketClient(
                 is WebSocketClient.Event.State -> {
                     // ignore this events
                 }
+
                 is WebSocketClient.Event.Data.TextMessage ->
                     textHandler(event.text)
+
                 is WebSocketClient.Event.Data.BytesMessage ->
                     bytesHandler(event.bytes)
             }
         }
+
+        // perform incoming commands
+        val actions = webSocketEvents
+            .mapNotNull { event ->
+                when (event) {
+                    is WebSocketClient.Event.Data -> null
+                    is WebSocketClient.Event.State -> event
+                }
+            }
+            .flatMapLatest { lastState ->
+                val webSocket = lastState.webSocket
+                when (lastState) {
+                    is WebSocketClient.Event.State.Connected ->
+                        input.mapNotNull { command ->
+                            when (command) {
+                                is WebSocketClient.Command.Connect -> {
+                                    // ignore, already connected, shouldn't be in such state
+                                    null
+                                }
+
+                                is WebSocketClient.Command.SendText ->
+                                    Action.SendText(webSocket, command.text)
+
+                                is WebSocketClient.Command.SendBytes ->
+                                    Action.SendBytes(webSocket, command.bytes)
+
+                                is WebSocketClient.Command.Disconnect ->
+                                    Action.Disconnect(webSocket, command.code, command.reason)
+                            }
+                        }
+
+                    is WebSocketClient.Event.State.Closing,
+                    is WebSocketClient.Event.State.Closed,
+                    is WebSocketClient.Event.State.Failed -> {
+                        // commands shouldn't be accepted if not connected
+                        emptyFlow()
+                    }
+                }
+            }
+
+        actions.collect {
+            it.execute()
+        }
     }
-
-
 }
 
 class ProductScopeWebSocketListener(
@@ -113,6 +158,33 @@ class ProductScopeWebSocketListener(
         logError(t) { "onFailure $webSocket, response: $response" }
         producerScope.trySendBlocking(WebSocketClient.Event.State.Failed(webSocket, t))
         producerScope.close(t)
+    }
+}
+
+private sealed class Action(val webSocket: WebSocket) {
+
+    abstract fun execute()
+
+    class SendText(webSocket: WebSocket, val text: String) : Action(webSocket) {
+        override fun execute() {
+            logDebug { "send text: $text via $webSocket" }
+            webSocket.send(text)
+        }
+    }
+
+    class SendBytes(webSocket: WebSocket, val bytes: ByteString) : Action(webSocket) {
+        override fun execute() {
+            logDebug { "send bytes: $bytes via $webSocket" }
+            webSocket.send(bytes)
+        }
+    }
+
+    class Disconnect(webSocket: WebSocket, val code: Int, val reason: String?) :
+        Action(webSocket) {
+        override fun execute() {
+            logDebug { "disconnect code: $code, reason: $reason from $webSocket" }
+            webSocket.close(code, reason)
+        }
     }
 }
 
