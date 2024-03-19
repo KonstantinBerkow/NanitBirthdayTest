@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -22,10 +23,42 @@ import java.util.GregorianCalendar
 
 private const val TAG = "MainFragment"
 
+private const val MAX_MONTHS_AGE = 11
+
 private val ThemeResources = arrayOf(
     intArrayOf(R.drawable.fox_bg, R.drawable.fox_fg, R.color.fox_background_color),
     intArrayOf(R.drawable.elephant_bg, R.drawable.elephant_fg, R.color.elephant_background_color),
     intArrayOf(R.drawable.pelican_bg, R.drawable.pelican_fg, R.color.pelican_background_color),
+)
+
+private val SupportedAgesInMonths = arrayOf(
+    R.drawable.zero,
+    R.drawable.one,
+    R.drawable.two,
+    R.drawable.three,
+    R.drawable.four,
+    R.drawable.five,
+    R.drawable.six,
+    R.drawable.seven,
+    R.drawable.eight,
+    R.drawable.nine,
+    R.drawable.ten,
+    R.drawable.eleven,
+)
+
+private val SupportedAgesInYears = arrayOf(
+    R.drawable.one,
+    R.drawable.two,
+    R.drawable.three,
+    R.drawable.four,
+    R.drawable.five,
+    R.drawable.six,
+    R.drawable.seven,
+    R.drawable.eight,
+    R.drawable.nine,
+    R.drawable.ten,
+    R.drawable.eleven,
+    R.drawable.twelve,
 )
 
 class MainFragment : Fragment() {
@@ -49,6 +82,18 @@ class MainFragment : Fragment() {
     private lateinit var decorationImageView: ImageView
 
     private lateinit var nanitLogo: View
+
+    private lateinit var nameTextView: TextView
+
+    private lateinit var ageImageView: ImageView
+
+    private lateinit var ageTextView: TextView
+
+    private lateinit var ageDecorationStart: View
+
+    private lateinit var ageDecorationEnd: View
+
+    private lateinit var decorationViews: List<View>
 
     private var lastState: MainViewModel.State? = null
 
@@ -98,9 +143,9 @@ class MainFragment : Fragment() {
         } else {
             View.VISIBLE
         }
-        decorationImageView.visibility = decorationsVisibility
-        babyImageView.visibility = decorationsVisibility
-        nanitLogo.visibility = decorationsVisibility
+        for (decorationView in decorationViews) {
+            decorationView.visibility = decorationsVisibility
+        }
         if (info != oldState?.info && info != null) {
             Log.d(TAG, "render birthday info: $info")
             showBirthdayMessage(info)
@@ -124,21 +169,49 @@ class MainFragment : Fragment() {
         Log.d(TAG, "now   date: $now")
 
         val differenceInMonths = ChronoUnit.MONTHS.between(birthDate, now)
-        if (differenceInMonths > 11) {
+        if (differenceInMonths > MAX_MONTHS_AGE) {
             val differenceInYears = ChronoUnit.YEARS.between(birthDate, now)
-            showAgeInYears(differenceInYears)
+            showAgeInYears(differenceInYears.toInt())
         } else {
-            showAgeInMonths(differenceInMonths)
+            showAgeInMonths(differenceInMonths.toInt())
         }
+
+        val nameText = resources.getString(R.string.name_text, info.name)
+        nameTextView.text = nameText.uppercase()
     }
 
-    private fun showAgeInMonths(differenceInMonths: Long) {
+    private fun showAgeInMonths(differenceInMonths: Int) {
         Log.d(TAG, "showAgeInMonths: $differenceInMonths")
+        if (differenceInMonths < 0 || MAX_MONTHS_AGE < differenceInMonths) {
+            ageTextView.text = ""
+            ageImageView.setImageBitmap(null)
+            return
+        }
 
+        val text = resources.getQuantityString(R.plurals.months_old, differenceInMonths)
+        Log.d(TAG, "quantity: $differenceInMonths, text: $text")
+        ageTextView.text = text.uppercase()
+
+        val ageImageRes = SupportedAgesInMonths[differenceInMonths]
+        Log.d(TAG, "imageRes: $ageImageRes")
+        ageImageView.setImageResource(ageImageRes)
     }
 
-    private fun showAgeInYears(differenceInYears: Long) {
+    private fun showAgeInYears(differenceInYears: Int) {
         Log.d(TAG, "showAgeInYears: $differenceInYears")
+        if (differenceInYears <= 0 || 12 < differenceInYears) {
+            ageTextView.text = ""
+            ageImageView.setImageBitmap(null)
+            return
+        }
+
+        val text = resources.getQuantityString(R.plurals.years_old, differenceInYears)
+        Log.d(TAG, "quantity: $differenceInYears, text: $text")
+        ageTextView.text = text.uppercase()
+
+        val ageImageRes = SupportedAgesInYears[differenceInYears - 1]
+        Log.d(TAG, "imageRes: $ageImageRes")
+        ageImageView.setImageResource(ageImageRes)
     }
 
     override fun onCreateView(
@@ -155,6 +228,22 @@ class MainFragment : Fragment() {
             babyImageView = it.findViewById(R.id.baby_image)
             decorationImageView = it.findViewById(R.id.theme_decoration_image)
             nanitLogo = it.findViewById(R.id.nanit_logo)
+            nameTextView = it.findViewById(R.id.name_text_view)
+            ageImageView = it.findViewById(R.id.age_image_view)
+            ageTextView = it.findViewById(R.id.age_text_view)
+            ageDecorationStart = it.findViewById(R.id.swirl_left)
+            ageDecorationEnd = it.findViewById(R.id.swirl_right)
+
+            decorationViews = listOf(
+                babyImageView,
+                decorationImageView,
+                nanitLogo,
+                nameTextView,
+                ageImageView,
+                ageTextView,
+                ageDecorationStart,
+                ageDecorationEnd
+            )
 
             connectButton.setOnClickListener {
                 val currentState = lastState ?: return@setOnClickListener
