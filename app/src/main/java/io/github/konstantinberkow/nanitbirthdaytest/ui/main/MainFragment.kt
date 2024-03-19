@@ -1,6 +1,7 @@
 package io.github.konstantinberkow.nanitbirthdaytest.ui.main
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +11,8 @@ import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import io.github.konstantinberkow.nanitbirthdaytest.R
+
+private const val TAG = "MainFragment"
 
 class MainFragment : Fragment() {
 
@@ -39,7 +42,7 @@ class MainFragment : Fragment() {
         val oldState = lastState
         lastState = newState
 
-        val enableInput = !newState.connecting
+        val enableInput = !newState.connecting && !newState.connected
         val hidInput = newState.connected
         val inputVisibility = if (hidInput) {
             View.GONE
@@ -53,10 +56,17 @@ class MainFragment : Fragment() {
         editAddressInput.isEnabled = enableInput
         editAddressInput.visibility = inputVisibility
 
+        val info = newState.info
+
+        val showLoading = newState.connecting || (newState.connected && info == null)
         progressBar.visibility = if (newState.connecting) {
             View.VISIBLE
         } else {
             View.GONE
+        }
+
+        if (info != oldState?.info && info != null) {
+            Log.d(TAG, "render birthday info: $info")
         }
     }
 

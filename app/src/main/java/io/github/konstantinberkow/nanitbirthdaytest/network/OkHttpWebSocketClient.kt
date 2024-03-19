@@ -4,6 +4,7 @@ import android.util.Log
 import io.github.konstantinberkow.nanitbirthdaytest.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -58,6 +60,7 @@ class OkHttpWebSocketClient(
                     }
                 }
             }
+            .onEach { logDebug { "Emitting next event: $it" } }
             .shareIn(scope = coroutineScope, started = SharingStarted.WhileSubscribed())
 
         // perform incoming commands
@@ -101,24 +104,32 @@ class OkHttpWebSocketClient(
                 }
             }
 
-        actions.collect {
-            it.execute()
-        }
-
-        webSocketEvents.collect { event ->
-            logDebug { "Collect event $event" }
-            when (event) {
-                is WebSocketClient.Event.State -> {
-                    // ignore this events
-                }
-
-                is WebSocketClient.Event.Data.TextMessage ->
-                    textHandler(event.text)
-
-                is WebSocketClient.Event.Data.BytesMessage ->
-                    bytesHandler(event.bytes)
+        val executeIncomingCommands = async {
+            actions.collect {
+                it.execute()
             }
         }
+
+        logDebug { "proceed to data collect" }
+        val relayOutgoingMessages = async {
+            webSocketEvents.collect { event ->
+                logDebug { "Collect event $event" }
+                when (event) {
+                    is WebSocketClient.Event.State -> {
+                        // ignore this events
+                    }
+
+                    is WebSocketClient.Event.Data.TextMessage ->
+                        textHandler(event.text)
+
+                    is WebSocketClient.Event.Data.BytesMessage ->
+                        bytesHandler(event.bytes)
+                }
+            }
+        }
+
+        executeIncomingCommands.await()
+        relayOutgoingMessages.await()
     }
 }
 

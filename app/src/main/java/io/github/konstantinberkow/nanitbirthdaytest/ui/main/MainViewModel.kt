@@ -67,6 +67,7 @@ class MainViewModel(
                             send(newState)
                         },
                         textHandler = { newText ->
+                            Log.d(TAG, "Handle text: $newText")
                             try {
                                 val message = gson.fromJson(newText, BirthdayMessage::class.java)
                                 send(State.info(address, message))
