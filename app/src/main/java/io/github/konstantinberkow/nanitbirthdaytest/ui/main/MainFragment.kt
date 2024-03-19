@@ -31,6 +31,7 @@ private val ThemeResources = arrayOf(
     intArrayOf(R.drawable.pelican_bg, R.drawable.pelican_fg, R.color.pelican_background_color),
 )
 
+// Months from in [0; 11]
 private val SupportedAgesInMonths = arrayOf(
     R.drawable.zero,
     R.drawable.one,
@@ -46,6 +47,7 @@ private val SupportedAgesInMonths = arrayOf(
     R.drawable.eleven,
 )
 
+// Years from in [1; 12]
 private val SupportedAgesInYears = arrayOf(
     R.drawable.one,
     R.drawable.two,
