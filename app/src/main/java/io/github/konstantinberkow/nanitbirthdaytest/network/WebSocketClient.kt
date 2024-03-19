@@ -10,6 +10,7 @@ interface WebSocketClient {
         input: Flow<Command>,
         textHandler: suspend (String) -> Unit = Empty,
         bytesHandler: suspend (ByteString) -> Unit = Empty,
+        stateUpdated: suspend (Event.State) -> Unit = Empty,
     )
 
     private object Empty : suspend (Any) -> Unit {

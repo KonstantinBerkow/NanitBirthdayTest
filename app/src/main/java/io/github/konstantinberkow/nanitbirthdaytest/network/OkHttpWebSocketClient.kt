@@ -30,6 +30,7 @@ class OkHttpWebSocketClient(
         input: Flow<WebSocketClient.Command>,
         textHandler: suspend (String) -> Unit,
         bytesHandler: suspend (ByteString) -> Unit,
+        stateUpdated: suspend (WebSocketClient.Event.State) -> Unit,
     ) {
         val webSocketEvents = input
             .filterIsInstance<WebSocketClient.Command.Connect>()
@@ -74,6 +75,7 @@ class OkHttpWebSocketClient(
                 }
             }
             .flatMapLatest { lastState ->
+                stateUpdated(lastState)
                 val webSocket = lastState.webSocket
                 when (lastState) {
                     is WebSocketClient.Event.State.Connected ->
