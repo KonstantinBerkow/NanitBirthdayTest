@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">NanitBirthdayTest</string>
+    <string name="add_ws_address_hint">Server address</string>
+    <string name="connect_title">Connect</string>
 </resources>
