@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/fox_background_color"
+    android:background="@color/pelican_background_color"
     tools:context=".ui.main.MainFragment">
 
     <EditText
@@ -50,12 +50,12 @@
         android:id="@+id/baby_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="134dp"
+        android:layout_marginBottom="@dimen/baby_image_bottom_margin"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:src="@drawable/fox_fg"
+        tools:src="@drawable/pelican_fg"
         tools:visibility="visible" />
 
     <ImageView
@@ -67,7 +67,19 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:src="@drawable/fox_bg"
+        tools:src="@drawable/pelican_bg"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/nanit_logo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nanit_logo_top_margin"
+        android:src="@drawable/nanit_logo"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/baby_image"
         tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

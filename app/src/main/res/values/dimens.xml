@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="progress_bar_margin_top">160dp</dimen>
+    <dimen name="baby_image_bottom_margin">150dp</dimen>
+    <dimen name="nanit_logo_top_margin">15dp</dimen>
 </resources>
