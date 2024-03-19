@@ -1,7 +1,10 @@
 package io.github.konstantinberkow.nanitbirthdaytest.dependencies
 
 import android.util.Log
+import com.google.gson.GsonBuilder
 import io.github.konstantinberkow.nanitbirthdaytest.BuildConfig
+import io.github.konstantinberkow.nanitbirthdaytest.network.BirthdayMessage
+import io.github.konstantinberkow.nanitbirthdaytest.network.BirthdayMessageGsonAdapter
 import io.github.konstantinberkow.nanitbirthdaytest.network.OkHttpWebSocketClient
 import io.github.konstantinberkow.nanitbirthdaytest.network.WebSocketClient
 import kotlinx.coroutines.Dispatchers
@@ -50,5 +53,11 @@ class AppDependencies {
             okHttpClientProvider = wrappedFactory,
             coroutineContext = Dispatchers.IO
         )
+    }
+
+    val gson by lazy {
+        GsonBuilder()
+            .registerTypeAdapter(BirthdayMessage::class.java, BirthdayMessageGsonAdapter())
+            .create()
     }
 }
