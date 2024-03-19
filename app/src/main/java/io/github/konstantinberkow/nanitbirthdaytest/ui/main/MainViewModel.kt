@@ -11,6 +11,7 @@ import io.github.konstantinberkow.nanitbirthdaytest.NanitClientApp
 import io.github.konstantinberkow.nanitbirthdaytest.network.WebSocketClient
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
@@ -56,7 +57,8 @@ class MainViewModel(
                                     State.failed(address, socketState.throwable)
                             }
                             send(newState)
-                        }
+                        },
+                        coroutineScope = viewModelScope
                     )
                 }
             }
@@ -65,6 +67,7 @@ class MainViewModel(
                     State()
                 )
             }
+            .catch { Log.e(TAG, "Unhandled exception", it) }
             .asLiveData(context = viewModelScope.coroutineContext)
 
     fun setWebSocketAddress(address: String) {

@@ -13,7 +13,6 @@
         android:layout_height="wrap_content"
         android:hint="@string/add_ws_address_hint"
         android:maxLines="1"
-        android:textColor="@color/black"
         android:textSize="20sp"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/connect_button"

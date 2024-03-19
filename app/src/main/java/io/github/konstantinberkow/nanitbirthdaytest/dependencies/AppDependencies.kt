@@ -4,6 +4,7 @@ import android.util.Log
 import io.github.konstantinberkow.nanitbirthdaytest.BuildConfig
 import io.github.konstantinberkow.nanitbirthdaytest.network.OkHttpWebSocketClient
 import io.github.konstantinberkow.nanitbirthdaytest.network.WebSocketClient
+import kotlinx.coroutines.Dispatchers
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 
@@ -46,7 +47,8 @@ class AppDependencies {
     val webSocketOkHttpClientFactory: () -> WebSocketClient = {
         val wrappedFactory = { okHttpClientFactory("WebSocketOkHttpClient") }
         OkHttpWebSocketClient(
-            okHttpClientProvider = wrappedFactory
+            okHttpClientProvider = wrappedFactory,
+            coroutineContext = Dispatchers.IO
         )
     }
 }

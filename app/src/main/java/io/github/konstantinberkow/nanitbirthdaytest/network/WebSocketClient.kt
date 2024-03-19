@@ -1,5 +1,6 @@
 package io.github.konstantinberkow.nanitbirthdaytest.network
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import okhttp3.WebSocket
 import okio.ByteString
@@ -11,6 +12,7 @@ interface WebSocketClient {
         textHandler: suspend (String) -> Unit = Empty,
         bytesHandler: suspend (ByteString) -> Unit = Empty,
         stateUpdated: suspend (Event.State) -> Unit = Empty,
+        coroutineScope: CoroutineScope
     )
 
     private object Empty : suspend (Any) -> Unit {

@@ -2,27 +2,33 @@ package io.github.konstantinberkow.nanitbirthdaytest.network
 
 import android.util.Log
 import io.github.konstantinberkow.nanitbirthdaytest.BuildConfig
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
+import kotlin.coroutines.CoroutineContext
 
 private const val TAG = "OkHttpWebSocketClient"
 
 class OkHttpWebSocketClient(
-    private val okHttpClientProvider: () -> OkHttpClient
+    private val okHttpClientProvider: () -> OkHttpClient,
+    private val coroutineContext: CoroutineContext
 ) : WebSocketClient {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -31,7 +37,8 @@ class OkHttpWebSocketClient(
         textHandler: suspend (String) -> Unit,
         bytesHandler: suspend (ByteString) -> Unit,
         stateUpdated: suspend (WebSocketClient.Event.State) -> Unit,
-    ) {
+        coroutineScope: CoroutineScope
+    ) = withContext(coroutineContext) {
         val webSocketEvents = input
             .filterIsInstance<WebSocketClient.Command.Connect>()
             .flatMapLatest { connect ->
@@ -51,20 +58,7 @@ class OkHttpWebSocketClient(
                     }
                 }
             }
-
-        webSocketEvents.collect { event ->
-            when (event) {
-                is WebSocketClient.Event.State -> {
-                    // ignore this events
-                }
-
-                is WebSocketClient.Event.Data.TextMessage ->
-                    textHandler(event.text)
-
-                is WebSocketClient.Event.Data.BytesMessage ->
-                    bytesHandler(event.bytes)
-            }
-        }
+            .shareIn(scope = coroutineScope, started = SharingStarted.WhileSubscribed())
 
         // perform incoming commands
         val actions = webSocketEvents
@@ -75,6 +69,7 @@ class OkHttpWebSocketClient(
                 }
             }
             .flatMapLatest { lastState ->
+                logDebug { "Execute 'stateUpdate' for $lastState" }
                 stateUpdated(lastState)
                 val webSocket = lastState.webSocket
                 when (lastState) {
@@ -108,6 +103,21 @@ class OkHttpWebSocketClient(
 
         actions.collect {
             it.execute()
+        }
+
+        webSocketEvents.collect { event ->
+            logDebug { "Collect event $event" }
+            when (event) {
+                is WebSocketClient.Event.State -> {
+                    // ignore this events
+                }
+
+                is WebSocketClient.Event.Data.TextMessage ->
+                    textHandler(event.text)
+
+                is WebSocketClient.Event.Data.BytesMessage ->
+                    bytesHandler(event.bytes)
+            }
         }
     }
 }
