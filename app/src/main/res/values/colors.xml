@@ -10,4 +10,5 @@
     <color name="fox_background_color">#C5E8DF</color>
     <color name="elephant_background_color">#FDEFCB</color>
     <color name="pelican_background_color">#DAF1F6</color>
+    <color name="decoration_text_color">#394562</color>
 </resources>

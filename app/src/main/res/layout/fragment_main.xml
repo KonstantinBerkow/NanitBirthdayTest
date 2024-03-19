@@ -82,4 +82,74 @@
         app:layout_constraintTop_toBottomOf="@+id/baby_image"
         tools:visibility="visible" />
 
+    <TextView
+        android:id="@+id/name_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/name_text_top_margin"
+        android:gravity="center"
+        android:maxWidth="240dp"
+        android:textColor="@color/decoration_text_color"
+        android:textSize="@dimen/name_text_size"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/age_image_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="TODAY CRISTIANO RONALDO IS"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/age_image_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/age_image_top_margin"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/age_text_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/name_text_view"
+        tools:src="@drawable/one"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/age_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/age_text_top_margin"
+        android:textColor="@color/decoration_text_color"
+        android:textSize="18sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/baby_image"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/age_image_view"
+        tools:text="MONTH OLD!"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/swirl_left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/swirls_margin"
+        android:src="@drawable/left_swirls"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/age_image_view"
+        app:layout_constraintEnd_toStartOf="@+id/age_image_view"
+        app:layout_constraintTop_toTopOf="@+id/age_image_view"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/swirl_right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/swirls_margin"
+        android:src="@drawable/right_swirls"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/age_image_view"
+        app:layout_constraintStart_toEndOf="@+id/age_image_view"
+        app:layout_constraintTop_toTopOf="@+id/age_image_view"
+        tools:visibility="visible" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
