@@ -1,6 +1,7 @@
 package io.github.konstantinberkow.nanitbirthdaytest.network
 
 import kotlinx.coroutines.flow.Flow
+import okhttp3.WebSocket
 import okio.ByteString
 
 interface WebSocketClient {
@@ -33,24 +34,37 @@ interface WebSocketClient {
 
     sealed interface Event {
 
-        data object Connected : Event
+        sealed interface State : Event {
 
-        data class Closing(
-            val code: Int,
-            val reason: String
-        ) : Event
+            val webSocket: WebSocket
 
-        data class Closed(
-            val code: Int,
-            val reason: String
-        ) : Event
+            data class Connected(
+                override val webSocket: WebSocket
+            ) : State
 
-        data class Failed(
-            val throwable: Throwable
-        ) : Event
+            data class Closing(
+                override val webSocket: WebSocket,
+                val code: Int,
+                val reason: String
+            ) : State
 
-        data class TextMessage(val text: String) : Event
+            data class Closed(
+                override val webSocket: WebSocket,
+                val code: Int,
+                val reason: String
+            ) : State
 
-        data class BytesMessage(val bytes: ByteString) : Event
+            data class Failed(
+                override val webSocket: WebSocket,
+                val throwable: Throwable
+            ) : State
+        }
+
+        sealed interface Data : Event {
+
+            data class TextMessage(val text: String) : Data
+
+            data class BytesMessage(val bytes: ByteString) : Data
+        }
     }
 }

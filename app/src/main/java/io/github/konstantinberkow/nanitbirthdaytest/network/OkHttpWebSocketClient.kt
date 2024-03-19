@@ -51,15 +51,12 @@ class OkHttpWebSocketClient(
 
         webSocketEvents.collect { event ->
             when (event) {
-                WebSocketClient.Event.Connected,
-                is WebSocketClient.Event.Closing,
-                is WebSocketClient.Event.Closed,
-                is WebSocketClient.Event.Failed -> {
+                is WebSocketClient.Event.State -> {
                     // ignore this events
                 }
-                is WebSocketClient.Event.TextMessage ->
+                is WebSocketClient.Event.Data.TextMessage ->
                     textHandler(event.text)
-                is WebSocketClient.Event.BytesMessage ->
+                is WebSocketClient.Event.Data.BytesMessage ->
                     bytesHandler(event.bytes)
             }
         }
@@ -75,35 +72,35 @@ class ProductScopeWebSocketListener(
     override fun onOpen(webSocket: WebSocket, response: Response) {
         logDebug { "onOpen $webSocket, response: $response" }
         producerScope.trySendBlocking(
-            WebSocketClient.Event.Connected
+            WebSocketClient.Event.State.Connected(webSocket)
         )
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
         logDebug { "onMessage $webSocket, text: $text" }
         producerScope.trySendBlocking(
-            WebSocketClient.Event.TextMessage(text)
+            WebSocketClient.Event.Data.TextMessage(text)
         )
     }
 
     override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
         logDebug { "onMessage $webSocket, bytes: $bytes" }
         producerScope.trySendBlocking(
-            WebSocketClient.Event.BytesMessage(bytes)
+            WebSocketClient.Event.Data.BytesMessage(bytes)
         )
     }
 
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
         logDebug { "onClosing $webSocket, code: $code, reason: $reason" }
         producerScope.trySendBlocking(
-            WebSocketClient.Event.Closing(code, reason)
+            WebSocketClient.Event.State.Closing(webSocket, code, reason)
         )
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
         logDebug { "onClosed $webSocket, code: $code, reason: $reason" }
         producerScope.trySendBlocking(
-            WebSocketClient.Event.Closed(code, reason)
+            WebSocketClient.Event.State.Closed(webSocket, code, reason)
         )
         producerScope.close()
     }
@@ -114,7 +111,7 @@ class ProductScopeWebSocketListener(
         response: Response?
     ) {
         logError(t) { "onFailure $webSocket, response: $response" }
-        producerScope.trySendBlocking(WebSocketClient.Event.Failed(t))
+        producerScope.trySendBlocking(WebSocketClient.Event.State.Failed(webSocket, t))
         producerScope.close(t)
     }
 }
