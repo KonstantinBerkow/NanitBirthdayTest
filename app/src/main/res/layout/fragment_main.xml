@@ -5,6 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    tools:background="@color/fox_background_color"
     tools:context=".ui.main.MainFragment">
 
     <EditText
@@ -46,6 +47,17 @@
         tools:visibility="gone" />
 
     <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="134dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:src="@drawable/fox_fg"
+        tools:visibility="visible" />
+
+    <ImageView
         android:id="@+id/theme_decoration_image"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -54,7 +66,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:src="@drawable/pelican_bg"
+        tools:src="@drawable/fox_bg"
         tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
