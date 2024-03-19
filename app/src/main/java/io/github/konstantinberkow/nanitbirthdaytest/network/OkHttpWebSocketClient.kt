@@ -26,7 +26,9 @@ class OkHttpWebSocketClient(
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun subscribe(
         webSocketUrl: String,
-        input: Flow<WebSocketClient.Command>
+        input: Flow<WebSocketClient.Command>,
+        textHandler: suspend (String) -> Unit,
+        bytesHandler: suspend (ByteString) -> Unit,
     ) {
         val webSocketEvents = input
             .filter { it is WebSocketClient.Command.Connect }
@@ -47,6 +49,21 @@ class OkHttpWebSocketClient(
                     }
                 }
             }
+
+        webSocketEvents.collect { event ->
+            when (event) {
+                WebSocketClient.Event.Connected,
+                is WebSocketClient.Event.Closing,
+                is WebSocketClient.Event.Closed,
+                is WebSocketClient.Event.Failed -> {
+                    // ignore this events
+                }
+                is WebSocketClient.Event.TextMessage ->
+                    textHandler(event.text)
+                is WebSocketClient.Event.BytesMessage ->
+                    bytesHandler(event.bytes)
+            }
+        }
     }
 
 
