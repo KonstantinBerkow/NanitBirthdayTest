@@ -1,5 +1,6 @@
 package io.github.konstantinberkow.nanitbirthdaytest.ui.main
 
+import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,6 +10,9 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import io.github.konstantinberkow.nanitbirthdaytest.R
@@ -53,12 +57,15 @@ class MainFragment : Fragment() {
     }
 
     private fun render(newState: MainViewModel.State) {
+        Log.d(TAG, "render $newState")
         val oldState = lastState
         lastState = newState
 
         val enableInput = !newState.connecting && !newState.connected
-        val hidInput = newState.connected
-        val inputVisibility = if (hidInput) {
+        Log.d(TAG, "enableInput = $enableInput")
+        val hideInput = newState.connected
+        Log.d(TAG, "hideInput = $hideInput")
+        val inputVisibility = if (hideInput) {
             View.GONE
         } else {
             View.VISIBLE
@@ -73,18 +80,20 @@ class MainFragment : Fragment() {
         val info = newState.info
 
         val showLoading = newState.connecting || (newState.connected && info == null)
+        Log.d(TAG, "showLoading = $showLoading")
         progressBar.visibility = if (showLoading) {
             View.VISIBLE
         } else {
             View.GONE
         }
 
-        val decorationsVisibility = if (info == null) {
+        val hideDecorations = info == null
+        Log.d(TAG, "hideDecorations = $hideDecorations")
+        val decorationsVisibility = if (hideDecorations) {
             View.GONE
         } else {
             View.VISIBLE
         }
-        rootView.visibility = decorationsVisibility
         decorationImageView.visibility = decorationsVisibility
         babyImageView.visibility = decorationsVisibility
         if (info != oldState?.info && info != null) {
@@ -94,11 +103,11 @@ class MainFragment : Fragment() {
     }
 
     private fun showBirthdayMessage(info: BirthdayMessage) {
-        val (screenDecoration, centerDecoration, bgColor) = ThemeResources[info.theme.ordinal]
+        val (screenDecorationId, centerDecorationId, bgColorId) = ThemeResources[info.theme.ordinal]
 
-        rootView.setBackgroundColor(bgColor)
-        decorationImageView.setImageResource(screenDecoration)
-        babyImageView.setImageResource(centerDecoration)
+        rootView.setBackgroundResource(bgColorId)
+        decorationImageView.setImageResource(screenDecorationId)
+        babyImageView.setImageResource(centerDecorationId)
     }
 
     override fun onCreateView(
@@ -124,6 +133,16 @@ class MainFragment : Fragment() {
                     viewModel.setWebSocketAddress(addressTextRaw)
                 }
             }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            Log.d(TAG, "system bars insets: $systemBars")
+
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
         }
     }
 }
