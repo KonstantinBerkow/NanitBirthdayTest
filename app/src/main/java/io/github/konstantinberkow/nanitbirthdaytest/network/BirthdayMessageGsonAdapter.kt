@@ -21,7 +21,7 @@ class BirthdayMessageGsonAdapter : JsonDeserializer<BirthdayMessage> {
         val name = jsonObject.get(NAME_KEY).asString
         val dob = jsonObject.get(DATE_KEY).asLong
         val rawTheme = jsonObject.get(THEME_KEY).asString
-        val theme = rawTheme?.let { BirthdayMessage.Theme.valueOf(it) }
+        val theme = rawTheme?.let { BirthdayMessage.Theme.fromString(it) }
 
         if (name != null && dob != 0L && theme != null) {
             return BirthdayMessage(

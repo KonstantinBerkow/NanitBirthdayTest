@@ -11,8 +11,11 @@ data class BirthdayMessage(
         Elephant("elephant"),
         Pelican("pelican");
 
-        fun fromString(raw: String): Theme? {
-            return values().firstOrNull { it.rawValue == raw }
+        companion object {
+
+            fun fromString(raw: String): Theme? {
+                return values().firstOrNull { it.rawValue == raw }
+            }
         }
     }
 }
