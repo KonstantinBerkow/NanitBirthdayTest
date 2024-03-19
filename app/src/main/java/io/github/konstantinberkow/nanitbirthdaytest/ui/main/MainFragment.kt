@@ -104,8 +104,9 @@ class MainFragment : Fragment() {
 
     private fun showBirthdayMessage(info: BirthdayMessage) {
         val (screenDecorationId, centerDecorationId, bgColorId) = ThemeResources[info.theme.ordinal]
+        val bgColor = ResourcesCompat.getColor(resources, bgColorId, requireActivity().theme)
 
-        rootView.setBackgroundResource(bgColorId)
+        rootView.setBackgroundColor(bgColor)
         decorationImageView.setImageResource(screenDecorationId)
         babyImageView.setImageResource(centerDecorationId)
     }
