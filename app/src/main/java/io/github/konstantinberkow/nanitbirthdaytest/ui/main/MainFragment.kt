@@ -1,6 +1,5 @@
 package io.github.konstantinberkow.nanitbirthdaytest.ui.main
 
-import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -17,6 +16,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import io.github.konstantinberkow.nanitbirthdaytest.R
 import io.github.konstantinberkow.nanitbirthdaytest.network.BirthdayMessage
+import java.time.temporal.ChronoUnit
+import java.util.Calendar
+import java.util.GregorianCalendar
 
 private const val TAG = "MainFragment"
 
@@ -45,6 +47,8 @@ class MainFragment : Fragment() {
     private lateinit var babyImageView: ImageView
 
     private lateinit var decorationImageView: ImageView
+
+    private lateinit var nanitLogo: View
 
     private var lastState: MainViewModel.State? = null
 
@@ -96,6 +100,7 @@ class MainFragment : Fragment() {
         }
         decorationImageView.visibility = decorationsVisibility
         babyImageView.visibility = decorationsVisibility
+        nanitLogo.visibility = decorationsVisibility
         if (info != oldState?.info && info != null) {
             Log.d(TAG, "render birthday info: $info")
             showBirthdayMessage(info)
@@ -109,6 +114,31 @@ class MainFragment : Fragment() {
         rootView.setBackgroundColor(bgColor)
         decorationImageView.setImageResource(screenDecorationId)
         babyImageView.setImageResource(centerDecorationId)
+
+        val birthDate = (Calendar.getInstance().apply {
+            timeInMillis = info.dateOfBirth
+        } as GregorianCalendar).toZonedDateTime()
+
+        val now = (Calendar.getInstance() as GregorianCalendar).toZonedDateTime()
+        Log.d(TAG, "Birth date: $birthDate")
+        Log.d(TAG, "now   date: $now")
+
+        val differenceInMonths = ChronoUnit.MONTHS.between(birthDate, now)
+        if (differenceInMonths > 11) {
+            val differenceInYears = ChronoUnit.YEARS.between(birthDate, now)
+            showAgeInYears(differenceInYears)
+        } else {
+            showAgeInMonths(differenceInMonths)
+        }
+    }
+
+    private fun showAgeInMonths(differenceInMonths: Long) {
+        Log.d(TAG, "showAgeInMonths: $differenceInMonths")
+
+    }
+
+    private fun showAgeInYears(differenceInYears: Long) {
+        Log.d(TAG, "showAgeInYears: $differenceInYears")
     }
 
     override fun onCreateView(
@@ -124,6 +154,7 @@ class MainFragment : Fragment() {
 
             babyImageView = it.findViewById(R.id.baby_image)
             decorationImageView = it.findViewById(R.id.theme_decoration_image)
+            nanitLogo = it.findViewById(R.id.nanit_logo)
 
             connectButton.setOnClickListener {
                 val currentState = lastState ?: return@setOnClickListener
