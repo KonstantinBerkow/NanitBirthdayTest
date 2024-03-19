@@ -45,6 +45,16 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="gone" />
 
-    
+    <ImageView
+        android:id="@+id/theme_decoration_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:src="@drawable/pelican_bg"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
