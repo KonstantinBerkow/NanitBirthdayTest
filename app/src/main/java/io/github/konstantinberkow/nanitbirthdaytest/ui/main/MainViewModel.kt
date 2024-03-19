@@ -34,6 +34,8 @@ class MainViewModel(
             .filter { it.isNotBlank() } // prevent default
             .flatMapLatest { address ->
                 val decoratedAddress = transformAddressFromInput(address)
+                Log.d(TAG, "raw address: $address")
+                Log.d(TAG, "target address: $decoratedAddress")
                 channelFlow {
                     send(State.connecting(address))
                     val client = webSocketClientFactory()
