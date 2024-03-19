@@ -1,12 +1,14 @@
 package io.github.konstantinberkow.nanitbirthdaytest.ui.main
 
-import androidx.fragment.app.viewModels
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ProgressBar
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import io.github.konstantinberkow.nanitbirthdaytest.R
 
 class MainFragment : Fragment() {
@@ -15,19 +17,68 @@ class MainFragment : Fragment() {
         fun newInstance() = MainFragment()
     }
 
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel: MainViewModel by viewModels { MainViewModel.Factory }
+
+    private lateinit var connectButton: Button
+
+    private lateinit var editAddressInput: EditText
+
+    private lateinit var progressBar: ProgressBar
+
+    private var lastState: MainViewModel.State? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // TODO: Use the ViewModel
+        viewModel.stateLiveData.observe(this) { newState ->
+            render(newState)
+        }
+    }
+
+    private fun render(newState: MainViewModel.State) {
+        val oldState = lastState
+        lastState = newState
+
+        val enableInput = !newState.connecting
+        val hidInput = newState.connected
+        val inputVisibility = if (hidInput) {
+            View.GONE
+        } else {
+            View.VISIBLE
+        }
+
+        connectButton.isEnabled = enableInput
+        connectButton.visibility = inputVisibility
+
+        editAddressInput.isEnabled = enableInput
+        editAddressInput.visibility = inputVisibility
+
+        progressBar.visibility = if (newState.connecting) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(R.layout.fragment_main, container, false)
+        return inflater.inflate(R.layout.fragment_main, container, false).also {
+            connectButton = it.findViewById(R.id.connect_button)
+            editAddressInput = it.findViewById(R.id.edit_address_text)
+            progressBar = it.findViewById(R.id.progress_bar)
+
+            connectButton.setOnClickListener {
+                val currentState = lastState ?: return@setOnClickListener
+
+                val addressTextRaw = editAddressInput.text.toString()
+                if (currentState.rawAddress != addressTextRaw) {
+                    // address changed
+                    viewModel.setWebSocketAddress(addressTextRaw)
+                }
+            }
+        }
     }
 
 }

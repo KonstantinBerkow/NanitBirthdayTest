@@ -20,7 +20,8 @@ import kotlinx.coroutines.flow.onStart
 private const val TAG = "MainViewModel"
 
 class MainViewModel(
-    private val webSocketClientFactory: () -> WebSocketClient
+    private val webSocketClientFactory: () -> WebSocketClient,
+    private val transformAddressFromInput: (String) -> String
 ) : ViewModel() {
 
     // only existing action - connect
@@ -31,11 +32,12 @@ class MainViewModel(
         actionsFlow
             .filter { it.isNotBlank() } // prevent default
             .flatMapLatest { address ->
+                val decoratedAddress = transformAddressFromInput(address)
                 channelFlow {
                     send(State.connecting(address))
                     val client = webSocketClientFactory()
                     client.subscribe(
-                        input = flowOf(WebSocketClient.Command.Connect(address)),
+                        input = flowOf(WebSocketClient.Command.Connect(decoratedAddress)),
                         stateUpdated = { socketState ->
                             Log.d(
                                 TAG,
@@ -71,7 +73,7 @@ class MainViewModel(
     }
 
     data class State(
-        val webSocketAddress: String = "",
+        val rawAddress: String = "",
         val connecting: Boolean = false,
         val connected: Boolean = false,
         val failure: Throwable? = null
@@ -81,28 +83,28 @@ class MainViewModel(
 
             fun connecting(address: String) =
                 State(
-                    webSocketAddress = address,
+                    rawAddress = address,
                     connecting = true,
                     connected = false
                 )
 
             fun connected(address: String) =
                 State(
-                    webSocketAddress = address,
+                    rawAddress = address,
                     connecting = false,
                     connected = true
                 )
 
             fun closed(address: String) =
                 State(
-                    webSocketAddress = address,
+                    rawAddress = address,
                     connecting = false,
                     connected = false
                 )
 
             fun failed(address: String, cause: Throwable) =
                 State(
-                    webSocketAddress = address,
+                    rawAddress = address,
                     connecting = false,
                     connected = false,
                     failure = cause
@@ -117,8 +119,10 @@ class MainViewModel(
             require(modelClass.isAssignableFrom(MainViewModel::class.java))
             val app =
                 extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as NanitClientApp
-            val socketFactory = app.dependencies.webSocketOkHttpClientFactory
-            return MainViewModel(socketFactory) as T
+            val dependencies = app.dependencies
+            val socketFactory = dependencies.webSocketOkHttpClientFactory
+            val transformAddressFromInput = dependencies.transformAddressFromInput
+            return MainViewModel(socketFactory, transformAddressFromInput) as T
         }
     }
 }
