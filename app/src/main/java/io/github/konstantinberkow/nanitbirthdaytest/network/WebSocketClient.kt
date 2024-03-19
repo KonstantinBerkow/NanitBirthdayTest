@@ -8,9 +8,15 @@ interface WebSocketClient {
 
     suspend fun subscribe(
         input: Flow<Command>,
-        textHandler: suspend (String) -> Unit,
-        bytesHandler: suspend (ByteString) -> Unit,
+        textHandler: suspend (String) -> Unit = Empty,
+        bytesHandler: suspend (ByteString) -> Unit = Empty,
     )
+
+    private object Empty : suspend (Any) -> Unit {
+
+        override suspend fun invoke(ignored: Any) {
+        }
+    }
 
     sealed interface Command {
 
